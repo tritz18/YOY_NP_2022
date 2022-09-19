@@ -8,6 +8,7 @@ library(factoextra)
 library(tidyverse)
 library(readxl)
 library(tidymodels)
+library(rMR)
 tidymodels_prefer()
 
 ###################
@@ -19,16 +20,24 @@ f = list.files(pattern="*.xlsx")
 #### Clean logger data ####
 Abiotic_Raw <- purrr::map_df(f, function(x) {
   mydata <- read_excel(x)
-  mydata$Date_Time <- as.POSIXct(mydata$Date_Time,  format="%Y-%m-%d")
+  mydata$Date_Time <- as.POSIXct(mydata$Date_Time,  format="%Y-%m-%d %H:%M")
   mydata$Location<- as.factor(mydata$Location)
   mydata$Type <-as.factor(mydata$Type)
   mydata %>%
     filter(Date_Time < "2022-07-01" & Date_Time > "2022-06-13") %>%
-    select(-PRESSURE) %>% 
-    mutate(Date = as.Date(Date_Time))
+    mutate(Date = as.Date(Date_Time)) %>% 
+    select(-Date_Time)
 })
 
-#######################
+######################
+
+#### Percent saturation + add to dataset ####
+PERCENT_SAT<- DO.unit.convert(Abiotic_Raw$DO, DO.units.in = "mg/L", 
+                              DO.units.out = "pct", bar.units.in = "kpa", bar.units.out = "kpa", bar.press = Abiotic_Raw$PRESSURE,
+                              temp.C = Abiotic_Raw$TEMP, salinity = 0.5)
+
+Abiotic_Raw<- bind_cols(Abiotic_Raw, PERCENT_SAT) %>% 
+  rename(PER_SAT=...7)
 
 #### Abiotic hours dataset creation ####
 Abiotic_Hrs<- Abiotic_Raw %>% 
@@ -40,7 +49,7 @@ Abiotic_Hrs<- Abiotic_Raw %>%
 #### Summarize abiotic data ####
 Abiotic_Sum<- Abiotic_Raw %>% 
   group_by(across(c(Date, Location))) %>% 
-  select(DO, TEMP) %>% 
+  select(DO, TEMP, PER_SAT) %>% 
   summarise(across(everything(), list(mean = mean, max = max, min=min, sd=sd), .names = "{col}_{fn}")) 
 
 #################################
