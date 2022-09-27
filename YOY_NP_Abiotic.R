@@ -9,6 +9,7 @@ library(tidyverse)
 library(readxl)
 library(tidymodels)
 library(rMR)
+
 tidymodels_prefer()
 
 ###################
@@ -74,3 +75,42 @@ ggplot(Abiotic_Final, aes(Location,PER_SAT_mean, color=Type,
         axis.text = element_text(size=12))+
   facet_wrap(~Wetland, scales = "free_x")
 ggsave("persat.png", dpi=300, height = 8, width = 8)
+
+#### M chemistry table ####
+
+Otolith_M_Chemistry_Summary<- Abiotic_Final %>% 
+  group_by(across(c(Location, Wetland))) %>% 
+  select(DO_mean, PER_SAT_mean, Hyp_Hrs, Wetland) %>% 
+  summarise(Mean_Daily_DO=mean(DO_mean), 
+            Mean_Daily_Per_Sat=mean(PER_SAT_mean), Mean_Hyp_Hrs=mean(Hyp_Hrs)) %>% 
+  filter(Location %in% c("CM_REF5", "CM_SP2", "FC_REF6", "FC_SP5", "FC_REF6", 
+                         "CHIP_REF3", "CHIP_SP2", "PV_REF2", "PV_SP4")) %>% 
+  mutate(N=5, .after=Wetland) %>% 
+  group_by(Wetland) %>% 
+  arrange(Wetland, desc(Mean_Daily_Per_Sat)) %>% 
+gt() %>% fmt_number(columns = 4:6 ,decimals = 2) %>% 
+  tab_header(
+    title = md("**Otolith Microchemistry Selection**")) %>% 
+  tab_style(
+    style = cell_fill(color = "lightblue"),
+    locations = cells_body(rows = Mean_Daily_Per_Sat > 50.5)
+  ) %>%
+  tab_style(
+    style = list(
+      cell_fill(color = "red"),
+      cell_text(color = "white")
+    ),
+    locations = cells_body(rows = Mean_Daily_Per_Sat < 50.5)
+  ) %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  ) %>% 
+  cols_label(
+    Mean_Daily_DO = "Mean Daily DO",
+    Mean_Daily_Per_Sat = "Mean Daily Percent Saturation",
+   Mean_Hyp_Hrs = "Mean Hypoxic Hours"
+  ) %>% 
+  cols_width(everything() ~ px(150)) 
+Otolith_M_Chemistry_Summary %>% 
+gtsave("Otolith_Microchemistry Table.png")
