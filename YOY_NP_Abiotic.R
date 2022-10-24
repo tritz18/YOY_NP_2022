@@ -67,14 +67,31 @@ Abiotic_Final<- left_join(Abiotic_Hrs,Abiotic_Sum, by=c("Date", "Location", "Typ
 ##### Plotting #####
 
 ggplot(Abiotic_Final, aes(Location,PER_SAT_mean, color=Type,
-  group=interaction(Wetland, Location)))+
+  group=interaction(Location, Type)))+
   geom_boxplot(fill="grey")+ theme_bw()+
+  theme(legend.position = "bottom", legend.text = element_text(size=14), 
+              legend.title = element_blank(),
+              strip.text = element_text(size=14),
+              axis.text = element_text(size=14),
+              axis.title.x = element_blank(),
+              axis.title.y = element_text(size=14))+
   scale_color_manual(values = c("#009E73","#0072B2"))+
-  scale_y_continuous(breaks = seq(0,150,25))+
+  scale_y_continuous(breaks = seq(0,125,25), limits = c(0,125))+
+  ylab("Mean Percent Oxygen Saturation")+
+  facet_wrap(~Wetland, scales = "free_x")
+
+ggsave("persat.png", dpi=300, height = 6, width = 10)
+
+ggplot(Abiotic_Final, aes(Location,PER_SAT_mean, color=Type,
+                          group=interaction(Wetland, Location)))+
+  geom_col()+ theme_bw()+
+  scale_color_manual(values = c("#009E73","#0072B2"))+
+  #scale_y_continuous(breaks = seq(0,150,25))+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), legend.position = "none",
         axis.text = element_text(size=12))+
   facet_wrap(~Wetland, scales = "free_x")
-ggsave("persat.png", dpi=300, height = 8, width = 8)
+
+
 
 #### M chemistry table ####
 
