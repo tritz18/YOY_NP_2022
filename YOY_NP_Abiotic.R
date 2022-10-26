@@ -65,6 +65,45 @@ Abiotic_Final<- left_join(Abiotic_Hrs,Abiotic_Sum, by=c("Date", "Location", "Typ
 
 
 ##### Plotting #####
+Abiotic_Sum_Type<- Abiotic_Raw %>% 
+  group_by(across(c(Type))) %>% 
+  select(DO, TEMP, PER_SAT) %>% 
+  summarise(across(everything(), list(mean = mean, max = max, min=min, sd=sd), .names = "{col}_{fn}")) 
+
+
+ggplot(Abiotic_Sum_Type, aes(Type,PER_SAT_mean, fill=Type, group=Type))+
+  geom_bar(stat="identity",position=position_dodge(), color="black")+ theme_bw()+
+  geom_errorbar(aes(ymin=PER_SAT_mean-PER_SAT_sd, ymax=PER_SAT_mean+PER_SAT_sd),
+        position=position_dodge(.9),width=.3)+
+  theme(legend.position = "none", 
+        axis.text = element_text(size=14),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=14))+
+  scale_fill_manual(values = c("#009E73","#0072B2"))+
+  scale_y_continuous(breaks = seq(0,100,25), limits = c(0,100))+
+  ylab("Daily % Oxygen Saturation ± SD")
+
+ggsave("persat_type.png", dpi=300, height = 6, width = 4)
+
+
+Abiotic_Final
+
+ggplot(Abiotic_Sum_Type, aes(Type,TEMP_mean, fill=Type, group=Type))+
+  geom_bar(stat="identity",position=position_dodge(), color="black")+ theme_bw()+
+  geom_errorbar(aes(ymin=TEMP_mean-TEMP_sd, ymax=TEMP_mean+TEMP_sd),
+                position=position_dodge(.9),width=.3)+
+  theme(legend.position = "none", 
+        axis.text = element_text(size=14),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=14))+
+  scale_fill_manual(values = c("#009E73","#0072B2"))+
+  scale_y_continuous(breaks = seq(0,24,2), limits = c(0,24))+
+  ylab("Daily Water Temperature ± SD")
+
+ggsave("Water_TEMP_type.png", dpi=300, height = 6, width = 4)
+
+
+
 
 ggplot(Abiotic_Final, aes(Location,PER_SAT_mean, color=Type,
   group=interaction(Location, Type)))+
@@ -77,10 +116,10 @@ ggplot(Abiotic_Final, aes(Location,PER_SAT_mean, color=Type,
               axis.title.y = element_text(size=14))+
   scale_color_manual(values = c("#009E73","#0072B2"))+
   scale_y_continuous(breaks = seq(0,125,25), limits = c(0,125))+
-  ylab("Mean Percent Oxygen Saturation")+
+  ylab("Daily % Oxygen Saturation")+
   facet_wrap(~Wetland, scales = "free_x")
 
-ggsave("persat.png", dpi=300, height = 6, width = 10)
+ggsave("persat_boxplot_2022.png", dpi=300, height = 6, width = 10)
 
 ggplot(Abiotic_Final, aes(Location,PER_SAT_mean, color=Type,
                           group=interaction(Wetland, Location)))+
