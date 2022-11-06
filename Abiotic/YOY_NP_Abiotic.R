@@ -84,7 +84,23 @@ ggplot(Abiotic_Final, aes(Type, PER_SAT_mean, color=Type))+
 
 ggsave("Abiotic_Wetland_Daily_DO.png", dpi = 300, height = 5, width = 6)
 
-###### 
+ggplot(Abiotic_Final, aes(Type, TEMP_mean, color=Type))+
+  geom_boxplot(position = position_dodge(), fill="grey")+theme_bw()+
+  theme(legend.position = "bottom", 
+        legend.text = element_text(size=15), legend.title = element_blank(),
+        axis.text.y = element_text(size=14), axis.text.x=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=14),
+        strip.text = element_text(size=15),
+        plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 14))+
+  scale_color_manual(values = c("#009E73","#0072B2"))+
+  scale_y_continuous(breaks = seq(8,28,4), minor_breaks = seq(8,28,2), limits = c(8,28))+
+  ylab("Daily Mean Water Temperature °C")+ggtitle("Growth & Emigration 05/01/22 - 07/01/22")+
+  facet_wrap(~Wetland)
+
+ggsave("Abiotic_Wetland_Daily_TEMP.png", dpi = 300, height = 5, width = 6)
+
+################################################################################################ 
 
 Abiotic_Sum_Type<- Abiotic_Raw %>% 
   group_by(across(c(Type))) %>% 
