@@ -20,16 +20,28 @@ YOY_NP$Date<- as.POSIXct(YOY_NP$Date,  format="%Y/%m/%d")
 YOY_NP$Type<- as.factor(YOY_NP$Type)
 YOY_NP$Length<-as.numeric(YOY_NP$Length)
 YOY_NP$Weight<-as.numeric(YOY_NP$Weight)
+
+
+#################### Calculate fish condition from retained fish ######
 YOY_NP<- YOY_NP %>% 
-mutate(K=Weight/(Length^3)*100,0000)
+mutate(K=Weight/(Length^3)*100,0000) %>% 
+  group_by(Date) %>% 
+  mutate(Study_Day = cur_group_id())
 
-
-ggplot(YOY_NP, aes(Length, K))+
+ggplot(YOY_NP, aes(Length, Weight))+
   geom_point()+
   geom_smooth(method="lm")+
 stat_regline_equation(aes(alpha=0.5, label = paste("atop(", ..eq.label.., ",", ..rr.label.., ")")), 
-                      label.x = 69, label.y =0.0009, formula = y~x)+
+                      label.x = 0, label.y =0, formula = y~x)+
+  facet_wrap(~Net)
+
+
+ggplot(YOY_NP, aes(Length))+
+  geom_bar(stat="count")+
   facet_wrap(~Site)
+
+
+#### summary dataset ####
 
 YOY_NP_Sum<- YOY_NP %>% 
   mutate(K=Weight/(Length^3)*100,0000) %>% 
@@ -41,13 +53,13 @@ group_by(across(c(Site, Type))) %>%
 
 
 
-ggplot(YOY_NP_Sum, aes(Type, Mean_K, fill=Type))+
+ggplot(YOY_NP_Sum, aes(Type, Mean_length, fill=Type))+
   geom_col(position="dodge", color="black")+
-  geom_errorbar(aes(ymin=Mean_K-K_SD, ymax=Mean_K+K_SD),
+  geom_errorbar(aes(ymin=Mean_length-length_sd, ymax=Mean_length+length_sd),
                 position=position_dodge(.9),width=.3)+
-  ylab("Length (mm)")+
+  ylab("Length (mm) ± SD")+
   scale_fill_manual(values = c("#009E73","#0072B2"))+
-  theme_bw()+#scale_y_continuous(breaks=seq(0,140,20),limits=c(0,140), minor_breaks = seq(0,140,10))+
+  theme_bw()+scale_y_continuous(breaks=seq(0,140,20),limits=c(0,140), minor_breaks = seq(0,140,10))+
   theme(legend.position = "bottom", 
         legend.text = element_text(size=15), legend.title = element_blank(),
         axis.text.y = element_text(size=14), axis.text.x=element_blank(),
@@ -58,3 +70,7 @@ ggplot(YOY_NP_Sum, aes(Type, Mean_K, fill=Type))+
   scale_color_manual(values = c("#009E73","#0072B2"))+
   ggtitle("Young-of-year Northern Pike 2022")+
   facet_wrap(~Site)
+ggsave("YOY_NP_Length_2022.png", dpi=300, width = 6, height = 5)
+
+
+
